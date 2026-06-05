@@ -13,7 +13,7 @@ export const DEFAULT_MODEL =
   process.env.DASHSCOPE_MODEL ?? "qwen-image-2.0-pro";
 
 const ID_PHOTO_PROMPT =
-  "将这张照片处理成标准证件照：表情严肃自然、正面免冠、光线均匀、背景纯色（白底或蓝底）、无饰品遮挡、符合证件照规范。";
+  "将这张照片的背景换成红色，注意保持原照片人物的细节。如果原图光线太弱或太强，可以适当调整一下光线";
 
 const REMOVE_PEOPLE_PROMPT =
   "擦除照片中背景里的所有路人，只保留画面主体人物，保持主体人物清晰自然，背景干净连贯，不要改变主体人物。";
