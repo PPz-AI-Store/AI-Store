@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getProduct } from "@/lib/products";
+import { parseOrderMetadata } from "@/lib/orders";
 
 export async function GET() {
   try {
@@ -13,10 +14,15 @@ export async function GET() {
     });
 
     return NextResponse.json({
-      orders: orders.map((o) => ({
-        ...o,
-        productName: getProduct(o.productId)?.name ?? o.productId,
-      })),
+      orders: orders.map((o) => {
+        const meta = parseOrderMetadata(o.metadata);
+        return {
+          ...o,
+          productName: getProduct(o.productId)?.name ?? o.productId,
+          balanceDeducted: meta.balanceDeducted,
+          totalDue: meta.totalDue,
+        };
+      }),
     });
   } catch {
     return NextResponse.json({ error: "请先登录" }, { status: 401 });

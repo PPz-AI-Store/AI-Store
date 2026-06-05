@@ -52,11 +52,11 @@ User (用户)
 | `productId` | `TEXT` | 非空 | 产品标识，如 `body-segment`、`super-resolution` |
 | `status` | `TEXT` | 默认 `PENDING` | 订单状态，见下方枚举 |
 | `costPrice` | `DOUBLE PRECISION` | 非空 | 本次调用的阿里云成本价（元） |
-| `chargePrice` | `DOUBLE PRECISION` | 非空 | 向用户收取的金额（元）。先用后付且实际价格 &lt; ¥0.1 时，此字段为 `0.1` |
+| `chargePrice` | `DOUBLE PRECISION` | 非空 | 待付金额（元）。余额充足时等于商品价格且订单直接 `PAID`；先用后付时为扣除已有余额后的不足部分 |
 | `paymentMethod` | `TEXT` | 可空 | 支付方式，见下方枚举 |
 | `resultUrl` | `TEXT` | 可空 | 阿里云返回的结果图临时 URL（约 30 分钟有效） |
 | `requestId` | `TEXT` | 可空 | 阿里云 API 请求 ID；支付宝支付时也可能写入交易号 |
-| `metadata` | `TEXT` | 可空 | JSON 字符串，扩展信息（如先用后付的余额返还 `balanceCredit`） |
+| `metadata` | `TEXT` | 可空 | JSON 字符串，先用后付时包含：`actualCharge`（商品实价）、`totalDue`（应付总额，含最低 ¥0.1 规则）、`balanceDeducted`（创建订单时已扣余额）、`balanceCredit`（结算后返还至余额的差额） |
 | `createdAt` | `TIMESTAMP(3)` | 非空 | 订单创建时间（即 AI 任务完成时间） |
 | `paidAt` | `TIMESTAMP(3)` | 可空 | 付款完成时间 |
 

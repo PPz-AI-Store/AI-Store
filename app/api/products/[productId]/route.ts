@@ -45,7 +45,6 @@ export async function POST(
 
     const formData = await request.formData();
     const file = formData.get("image");
-    const paymentMethod = (formData.get("paymentMethod") as string) ?? "pay_later";
     const prompt = formData.get("prompt") as string | null;
     const upscaleFactor = formData.get("upscaleFactor")
       ? Number(formData.get("upscaleFactor"))
@@ -76,26 +75,15 @@ export async function POST(
     });
 
     const pricing = getProductPricing(product);
-    const validPayment =
-      paymentMethod === "balance" ? "balance" : "pay_later";
-
-    if (validPayment === "balance" && user.balance < pricing.chargeCny) {
-      return NextResponse.json(
-        {
-          error: `余额不足，需要 ${pricing.chargeCny} 元，当前余额 ${user.balance} 元`,
-          code: "INSUFFICIENT_BALANCE",
-        },
-        { status: 402 },
-      );
-    }
 
     const order = await createOrderAfterTask({
       userId: user.id,
       product,
       resultUrl: result.resultUrl,
       requestId: result.requestId,
-      paymentMethod: validPayment,
     });
+
+    const orderMeta = order.metadata ? JSON.parse(order.metadata) : null;
 
     return NextResponse.json({
       resultUrl: result.resultUrl,
@@ -106,6 +94,8 @@ export async function POST(
         chargePrice: order.chargePrice,
         costPrice: order.costPrice,
         paymentMethod: order.paymentMethod,
+        balanceDeducted: orderMeta?.balanceDeducted ?? 0,
+        totalDue: orderMeta?.totalDue ?? order.chargePrice,
       },
       pricing,
       product: {

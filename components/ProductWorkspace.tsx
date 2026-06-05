@@ -18,6 +18,8 @@ type TaskResult = {
     status: string;
     chargePrice: number;
     paymentMethod: string | null;
+    balanceDeducted?: number;
+    totalDue?: number;
   };
 };
 
@@ -26,22 +28,23 @@ export function ProductWorkspace({ product, pricing }: Props) {
   const [preview, setPreview] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
   const [upscaleFactor, setUpscaleFactor] = useState(2);
-  const [paymentMethod, setPaymentMethod] = useState<"pay_later" | "balance">(
-    "pay_later",
-  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<TaskResult | null>(null);
   const [hasUnpaid, setHasUnpaid] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
 
-  useEffect(() => {
+  function refreshUser() {
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((d) => {
         setHasUnpaid(d.hasUnpaidOrders ?? false);
         setBalance(d.user?.balance ?? null);
       });
+  }
+
+  useEffect(() => {
+    refreshUser();
   }, []);
 
   const onFile = useCallback((f: File | null) => {
@@ -73,7 +76,6 @@ export function ProductWorkspace({ product, pricing }: Props) {
 
     const formData = new FormData();
     formData.append("image", file);
-    formData.append("paymentMethod", paymentMethod);
     if (product.needsPrompt && prompt) formData.append("prompt", prompt);
     if (product.id === "super-resolution") {
       formData.append("upscaleFactor", String(upscaleFactor));
@@ -90,9 +92,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
         throw new Error(data.error ?? "处理失败");
       }
       setResult(data);
-      if (paymentMethod === "balance" && balance !== null) {
-        setBalance(balance - data.order.chargePrice);
-      }
+      refreshUser();
     } catch (err) {
       setError(err instanceof Error ? err.message : "处理失败");
     } finally {
@@ -121,6 +121,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
       order: { ...result.order, status: "PAID", paymentMethod: method },
     });
     setHasUnpaid(false);
+    refreshUser();
   }
 
   return (
@@ -202,36 +203,21 @@ export function ProductWorkspace({ product, pricing }: Props) {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-4 text-sm">
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="payment"
-                checked={paymentMethod === "pay_later"}
-                onChange={() => setPaymentMethod("pay_later")}
-              />
-              先用后付
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="payment"
-                checked={paymentMethod === "balance"}
-                onChange={() => setPaymentMethod("balance")}
-              />
-              余额支付
-              {balance !== null && (
-                <span className="text-zinc-500">（{formatCny(balance)}）</span>
-              )}
-            </label>
-          </div>
+          {balance !== null && (
+            <p className="text-sm text-zinc-500">
+              当前余额 {formatCny(balance)}
+              {balance >= pricing.chargeCny
+                ? "，将自动从余额扣款"
+                : "，不足部分将先用后付"}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={loading || hasUnpaid || !file}
             className="w-full rounded-xl bg-violet-600 py-3 font-medium text-white transition hover:bg-violet-500 disabled:opacity-50 sm:w-auto sm:px-8"
           >
-            {loading ? "处理中…" : `开始处理 · ${formatCny(pricing.chargeCny)}`}
+            {loading ? "处理中…" : `开始任务 · ${formatCny(pricing.chargeCny)}`}
           </button>
         </form>
 
@@ -265,6 +251,11 @@ export function ProductWorkspace({ product, pricing }: Props) {
               </a>
               {result.order.status === "PENDING" && (
                 <>
+                  {(result.order.balanceDeducted ?? 0) > 0 && (
+                    <span className="self-center text-sm text-zinc-500">
+                      已从余额抵扣 {formatCny(result.order.balanceDeducted!)}
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={() => payOrder("balance")}
@@ -277,7 +268,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
                     onClick={() => payOrder("alipay")}
                     className="rounded-lg bg-sky-600 px-4 py-2 text-sm text-white hover:bg-sky-500"
                   >
-                    支付宝支付
+                    支付宝支付 {formatCny(result.order.chargePrice)}
                   </button>
                 </>
               )}

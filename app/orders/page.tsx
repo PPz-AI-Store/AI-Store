@@ -13,6 +13,8 @@ type Order = {
   resultUrl: string | null;
   createdAt: string;
   paymentMethod: string | null;
+  balanceDeducted?: number;
+  totalDue?: number;
 };
 
 export default function OrdersPage() {
@@ -81,7 +83,13 @@ export default function OrdersPage() {
                 </span>
               </div>
               <p className="mt-2 text-sm">
-                费用 {formatCny(order.chargePrice)}
+                {order.status === "PENDING" ? "待付" : "费用"}{" "}
+                {formatCny(order.chargePrice)}
+                {(order.balanceDeducted ?? 0) > 0 && (
+                  <span className="ml-2 text-zinc-400">
+                    已从余额抵扣 {formatCny(order.balanceDeducted!)}
+                  </span>
+                )}
                 <span className="ml-2 text-zinc-400">
                   成本 {formatCny(order.costPrice)}
                 </span>
@@ -104,14 +112,14 @@ export default function OrdersPage() {
                       onClick={() => pay(order.id, "balance")}
                       className="rounded-lg bg-violet-600 px-3 py-1 text-xs text-white hover:bg-violet-500"
                     >
-                      余额支付
+                      余额支付 {formatCny(order.chargePrice)}
                     </button>
                     <button
                       type="button"
                       onClick={() => pay(order.id, "alipay")}
                       className="rounded-lg bg-sky-600 px-3 py-1 text-xs text-white hover:bg-sky-500"
                     >
-                      支付宝
+                      支付宝 {formatCny(order.chargePrice)}
                     </button>
                   </>
                 )}

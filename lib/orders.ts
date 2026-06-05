@@ -20,26 +20,52 @@ export async function getUnpaidOrders(userId: string) {
   });
 }
 
-export type PaymentMethod = "balance" | "pay_later" | "alipay";
+export type OrderMetadata = {
+  actualCharge: number;
+  totalDue: number;
+  balanceDeducted: number;
+  balanceCredit: number;
+};
 
+export function parseOrderMetadata(metadata: string | null): OrderMetadata {
+  if (!metadata) {
+    return {
+      actualCharge: 0,
+      totalDue: 0,
+      balanceDeducted: 0,
+      balanceCredit: 0,
+    };
+  }
+  const parsed = JSON.parse(metadata) as Partial<OrderMetadata>;
+  return {
+    actualCharge: parsed.actualCharge ?? 0,
+    totalDue: parsed.totalDue ?? 0,
+    balanceDeducted: parsed.balanceDeducted ?? 0,
+    balanceCredit: parsed.balanceCredit ?? 0,
+  };
+}
+
+/**
+ * 任务完成后自动结算：
+ * - 余额 ≥ 商品价格 → 全额扣余额，订单已付
+ * - 余额不足 → 先用后付：先扣尽现有余额，待付金额为不足部分
+ */
 export async function createOrderAfterTask(params: {
   userId: string;
   product: Product;
   resultUrl: string;
   requestId?: string;
-  paymentMethod: PaymentMethod;
   metadata?: Record<string, unknown>;
 }) {
   const pricing = calculateChargePrice(params.product.costCny);
+  const payLater = calculatePayLaterCharge(params.product.costCny);
 
-  if (params.paymentMethod === "balance") {
-    const user = await prisma.user.findUniqueOrThrow({
-      where: { id: params.userId },
-    });
-    if (user.balance < pricing.chargeCny) {
-      throw new Error("INSUFFICIENT_BALANCE");
-    }
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: params.userId },
+  });
 
+  // 余额充足：直接扣款
+  if (user.balance >= pricing.chargeCny) {
     const [, order] = await prisma.$transaction([
       prisma.user.update({
         where: { id: params.userId },
@@ -63,26 +89,40 @@ export async function createOrderAfterTask(params: {
     return order;
   }
 
-  // 先用后付
-  const payLater = calculatePayLaterCharge(params.product.costCny);
-  const order = await prisma.order.create({
-    data: {
-      userId: params.userId,
-      productId: params.product.id,
-      status: "PENDING",
-      costPrice: pricing.costCny,
-      chargePrice: payLater.chargeAmount,
-      paymentMethod: "pay_later",
-      resultUrl: params.resultUrl,
-      requestId: params.requestId,
-      metadata: JSON.stringify({
-        ...params.metadata,
-        balanceCredit: payLater.balanceCredit,
-        actualCharge: pricing.chargeCny,
-      }),
-    },
+  // 先用后付：先扣余额，剩余待付
+  const totalDue = payLater.chargeAmount;
+  const balanceDeducted = roundMoney(Math.min(user.balance, totalDue));
+  const remainingDue = roundMoney(totalDue - balanceDeducted);
+
+  const orderMeta: OrderMetadata = {
+    actualCharge: pricing.chargeCny,
+    totalDue,
+    balanceDeducted,
+    balanceCredit: payLater.balanceCredit,
+    ...params.metadata,
+  };
+
+  return prisma.$transaction(async (tx) => {
+    if (balanceDeducted > 0) {
+      await tx.user.update({
+        where: { id: params.userId },
+        data: { balance: { decrement: balanceDeducted } },
+      });
+    }
+    return tx.order.create({
+      data: {
+        userId: params.userId,
+        productId: params.product.id,
+        status: "PENDING",
+        costPrice: pricing.costCny,
+        chargePrice: remainingDue,
+        paymentMethod: "pay_later",
+        resultUrl: params.resultUrl,
+        requestId: params.requestId,
+        metadata: JSON.stringify(orderMeta),
+      },
+    });
   });
-  return order;
 }
 
 export async function payOrderWithBalance(orderId: string, userId: string) {
@@ -96,14 +136,15 @@ export async function payOrderWithBalance(orderId: string, userId: string) {
     throw new Error("INSUFFICIENT_BALANCE");
   }
 
-  const meta = order.metadata ? JSON.parse(order.metadata) : {};
-  const balanceCredit = meta.balanceCredit ?? 0;
+  const meta = parseOrderMetadata(order.metadata);
 
   return prisma.$transaction(async (tx) => {
     await tx.user.update({
       where: { id: userId },
       data: {
-        balance: roundMoney(user.balance - order.chargePrice + balanceCredit),
+        balance: roundMoney(
+          user.balance - order.chargePrice + meta.balanceCredit,
+        ),
       },
     });
     return tx.order.update({
@@ -119,14 +160,13 @@ export async function payOrderWithAlipay(orderId: string, tradeNo: string) {
   });
   if (order.status !== "PENDING") return order;
 
-  const meta = order.metadata ? JSON.parse(order.metadata) : {};
-  const balanceCredit = meta.balanceCredit ?? 0;
+  const meta = parseOrderMetadata(order.metadata);
 
   return prisma.$transaction(async (tx) => {
-    if (balanceCredit > 0) {
+    if (meta.balanceCredit > 0) {
       await tx.user.update({
         where: { id: order.userId },
-        data: { balance: { increment: balanceCredit } },
+        data: { balance: { increment: meta.balanceCredit } },
       });
     }
     return tx.order.update({
