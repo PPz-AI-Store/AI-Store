@@ -1,6 +1,13 @@
+import { fetchLongRunning } from "../fetch";
+
 const DASHSCOPE_API_URL =
   process.env.DASHSCOPE_API_URL ??
   "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation";
+
+/** 百炼图像生成整体超时，默认 3 分钟，可通过环境变量调整 */
+const DASHSCOPE_TIMEOUT_MS = Number(
+  process.env.DASHSCOPE_TIMEOUT_MS ?? 180_000,
+);
 
 export const DEFAULT_MODEL =
   process.env.DASHSCOPE_MODEL ?? "qwen-image-2.0-pro";
@@ -32,33 +39,37 @@ export async function callImageGeneration(params: {
 
   const model = params.model ?? DEFAULT_MODEL;
 
-  const response = await fetch(DASHSCOPE_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
+  const response = await fetchLongRunning(
+    DASHSCOPE_API_URL,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        input: {
+          messages: [
+            {
+              role: "user",
+              content: [
+                { image: params.imageBase64 },
+                { text: params.prompt },
+              ],
+            },
+          ],
+        },
+        parameters: {
+          n: 1,
+          watermark: false,
+          negative_prompt: " ",
+          prompt_extend: true,
+        },
+      }),
     },
-    body: JSON.stringify({
-      model,
-      input: {
-        messages: [
-          {
-            role: "user",
-            content: [
-              { image: params.imageBase64 },
-              { text: params.prompt },
-            ],
-          },
-        ],
-      },
-      parameters: {
-        n: 1,
-        watermark: false,
-        negative_prompt: " ",
-        prompt_extend: true,
-      },
-    }),
-  });
+    { timeoutMs: DASHSCOPE_TIMEOUT_MS, connectTimeoutMs: 30_000 },
+  );
 
   const data = (await response.json()) as DashScopeResponse;
   if (!response.ok) {

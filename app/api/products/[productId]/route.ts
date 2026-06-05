@@ -6,6 +6,9 @@ import { hasUnpaidOrders, createOrderAfterTask } from "@/lib/orders";
 import { acquireRateLimit } from "@/lib/rate-limit";
 import { processProduct } from "@/lib/aliyun/process";
 
+/** 百炼等长耗时任务需要更长的 Serverless 上限（本地 dev 无影响） */
+export const maxDuration = 300;
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ productId: string }> },

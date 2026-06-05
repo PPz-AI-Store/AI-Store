@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { Product } from "@/lib/products";
 import type { PriceBreakdown } from "@/lib/billing";
 import { formatCny } from "@/lib/billing";
 import { PricingPanel } from "./PricingPanel";
+import { TaskProcessingPanel } from "./TaskProcessingPanel";
 
 type Props = {
   product: Product;
@@ -130,14 +132,19 @@ export function ProductWorkspace({ product, pricing }: Props) {
         {hasUnpaid && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
             您有未结算订单，请先{" "}
-            <a href="/orders" className="font-medium underline">
+            <Link href="/orders" className="font-medium underline">
               完成付款
-            </a>{" "}
+            </Link>{" "}
             后再使用本功能。
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {loading && <TaskProcessingPanel product={product} />}
+
+        <form
+          onSubmit={handleSubmit}
+          className={`space-y-4 ${loading ? "pointer-events-none opacity-50" : ""}`}
+        >
           <div
             className="relative flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-300 bg-zinc-50 p-6 transition hover:border-violet-400 dark:border-zinc-700 dark:bg-zinc-900/30"
             onDragOver={(e) => e.preventDefault()}
@@ -152,6 +159,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
               accept="image/*"
               className="absolute inset-0 cursor-pointer opacity-0"
               onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+              disabled={loading}
             />
             {preview ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -179,6 +187,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder={product.promptHint}
+                disabled={loading}
                 className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               />
             </div>
@@ -192,6 +201,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
               <select
                 value={upscaleFactor}
                 onChange={(e) => setUpscaleFactor(Number(e.target.value))}
+                disabled={loading}
                 className="rounded-lg border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
               >
                 {[1, 2, 3, 4].map((n) => (
@@ -203,7 +213,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
             </div>
           )}
 
-          {balance !== null && (
+          {balance !== null && !loading && (
             <p className="text-sm text-zinc-500">
               当前余额 {formatCny(balance)}
               {balance >= pricing.chargeCny
@@ -227,9 +237,17 @@ export function ProductWorkspace({ product, pricing }: Props) {
           </p>
         )}
 
-        {result && (
+        {result && !loading && (
           <div className="space-y-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-            <h3 className="font-semibold">处理结果</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="font-semibold">处理完成</h3>
+              <Link
+                href={`/orders/${result.order.id}`}
+                className="text-sm text-violet-600 hover:underline dark:text-violet-400"
+              >
+                查看订单详情 →
+              </Link>
+            </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={result.resultUrl}
@@ -237,7 +255,7 @@ export function ProductWorkspace({ product, pricing }: Props) {
               className="max-w-full rounded-lg"
             />
             <p className="text-sm text-zinc-500">
-              结果链接有效期约 30 分钟，请及时下载保存。
+              结果链接有效期有限，请尽快在订单详情页下载保存。
             </p>
             <div className="flex flex-wrap gap-3">
               <a
@@ -249,6 +267,12 @@ export function ProductWorkspace({ product, pricing }: Props) {
               >
                 下载结果
               </a>
+              <Link
+                href={`/orders/${result.order.id}`}
+                className="rounded-lg border border-violet-300 px-4 py-2 text-sm text-violet-700 hover:bg-violet-50 dark:border-violet-800 dark:text-violet-300 dark:hover:bg-violet-950/30"
+              >
+                订单详情
+              </Link>
               {result.order.status === "PENDING" && (
                 <>
                   {(result.order.balanceDeducted ?? 0) > 0 && (

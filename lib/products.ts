@@ -21,6 +21,8 @@ export type Product = {
   /** 是否需要额外参数（如 prompt） */
   needsPrompt?: boolean;
   promptHint?: string;
+  /** 典型等待时间（秒），用于 UI 提示 */
+  typicalWaitSec?: number;
 };
 
 /**
@@ -93,6 +95,7 @@ export const PRODUCTS: Record<ProductId, Product> = {
     icon: "📸",
     needsPrompt: true,
     promptHint: "可选：指定背景颜色，如「白底证件照」「蓝底证件照」",
+    typicalWaitSec: 60,
   },
   "remove-background-people": {
     id: "remove-background-people",
@@ -106,6 +109,7 @@ export const PRODUCTS: Record<ProductId, Product> = {
       "https://help.aliyun.com/zh/model-studio/developer-reference/qwen-image-api",
     icon: "🚶",
     needsPrompt: false,
+    typicalWaitSec: 60,
   },
 };
 
