@@ -110,3 +110,17 @@ User (用户)
 - `Recharge_userId_status_idx`：`(userId, status)` 复合索引，用于查询用户的充值记录
 
 支付宝侧 `out_trade_no` 格式为 `recharge_{id}`，与订单 ID 区分。
+
+## 常用运维命令
+```bash
+# 应用迁移（首次或 Schema 变更后）
+npm run db:migrate
+# 仅推送 Schema（开发快捷方式，不生成迁移文件）
+npm run db:push
+# 重新生成 Prisma Client
+npx prisma generate
+# 可视化查看数据
+npx prisma studio
+```
+## 迁移文件
+初始迁移位于 `prisma/migrations/20250605000000_init/migration.sql`，包含上述三张表及索引、外键定义。
