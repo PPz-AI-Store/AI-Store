@@ -1,0 +1,7 @@
+{
+	"name": "@local/env",
+	"version": "0.0.1",
+	"exports": {
+		".": "./mod.ts"
+	}
+}

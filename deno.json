@@ -1,0 +1,11 @@
+{
+	"tasks": {
+	},
+	"workspace": [
+		"package/*"
+	],
+	"imports": {
+		"@std/assert": "jsr:@std/assert@1",
+		"ali-oss": "npm:ali-oss@^6.23.0"
+	}
+}
