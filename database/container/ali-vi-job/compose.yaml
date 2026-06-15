@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: ali-vi-job--postgres18
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: abcde
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: ali-vi-job
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
