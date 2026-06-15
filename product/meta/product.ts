@@ -1,4 +1,4 @@
-import { I_product__llm } from './type.ts'
+import type { I_product__llm } from './type.ts'
 import { qwen_img_2_0, qwen_img_2_0_pro } from './model.ts'
 
 export
@@ -12,6 +12,7 @@ const img__remove_passersby: I_product__llm = {
 	],
 }
 
+/** 换纯色背景、可选换衣服（正装） */
 export
 const img__make_ID_photo: I_product__llm = {
 	key: 'img__make_ID_photo',
