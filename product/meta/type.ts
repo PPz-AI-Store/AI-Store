@@ -9,8 +9,8 @@ interface I_product {
 
 export
 interface I_ai_model {
+	key: string
 	provider: I_provider
-	name: string
 	price: {
 		cost: bigint
 		sale: bigint

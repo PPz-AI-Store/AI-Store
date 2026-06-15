@@ -2,7 +2,8 @@
 	"tasks": {
 	},
 	"workspace": [
-		"package/*"
+		"package/*",
+		"product/*"
 	],
 	"imports": {
 		"@std/assert": "jsr:@std/assert@1",
