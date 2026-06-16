@@ -19,6 +19,6 @@ dbmate new migration-name
 
 migrate up
 ``` bash
-dbmate -u "connection-string" up
+dbmate -u "connection-string" up # u: url
 # dbmate -u "postgres://abcde:12345@127.0.0.1:5432/ali-vi-job?sslmode=disable" up
 ```

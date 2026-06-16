@@ -38,10 +38,12 @@ SET default_table_access_method = heap;
 CREATE TABLE public.job (
     id integer NOT NULL,
     order_id uuid NOT NULL,
-    status public.job_status NOT NULL,
     api text NOT NULL,
     input text NOT NULL,
     output text,
+    status public.job_status NOT NULL,
+    error text,
+    raw_response text,
     receive_at timestamp with time zone NOT NULL,
     send_at timestamp with time zone,
     finish_at timestamp with time zone

@@ -5,10 +5,13 @@ create table "job" (
 	id serial primary key,
 	order_id uuid not null,
 
-	status "job_status" not null,
 	api text not null,
 	input text not null,
 	output text,
+
+	status "job_status" not null,
+	error text,
+	raw_response text,
 
 	receive_at timestamptz not null,
 	send_at timestamptz,
@@ -16,4 +19,6 @@ create table "job" (
 );
 
 -- migrate:down
+-- drop table "job";
+-- drop type "job_status";
 
