@@ -1,0 +1,24 @@
+services:
+  postgres: # logical name，是 compose 内部的“引用 id”，只在 compose.yaml 里有意义
+    image: postgres:18
+    container_name: ali-vi-job--db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: abcde
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: ali-vi-job
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+networks:
+  random-name: # logical name
+    name: ali-vi-job--db-network
+
+volumes:
+  pgdata: # logical name
+    name: ali-vi-job--db-volume

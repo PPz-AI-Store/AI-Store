@@ -21,7 +21,8 @@ docker compose stop
 或者在任何目录 `docker stop [container-name]`，如：
 
 ``` bash
-docker stop ali-vi-job--postgres18
+docker stop ali-vi-job--db
+# docker start ali-vi-job--db
 ```
 
 ##### 删除容器
