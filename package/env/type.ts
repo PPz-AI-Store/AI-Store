@@ -1,7 +1,21 @@
 export
 interface I_app_env {
-	aliyun_ak_id: string
-	aliyun_ak_secret: string
-	aliyun_tmp_oss_bucket: string
-	aliyun_region: string
+	aliyun: {
+		ak: {
+			id: string
+			secret: string
+		}
+		tmp_oss_bucket: string
+		region: string
+	}
+	server: {
+		ali_vi_job: {
+			port: number
+		}
+	}
+	database: {
+		ali_vi_job: {
+			url: string
+		}
+	}
 }

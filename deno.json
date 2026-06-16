@@ -2,6 +2,7 @@
 	"tasks": {
 	},
 	"workspace": [
+		"app/*",
 		"package/*",
 		"product/*"
 	],
