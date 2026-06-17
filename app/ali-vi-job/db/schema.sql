@@ -43,6 +43,7 @@ CREATE TABLE public.job (
     output text,
     status public.job_status NOT NULL,
     error text,
+    raw_request text NOT NULL,
     raw_response text,
     receive_at timestamp with time zone NOT NULL,
     send_at timestamp with time zone,

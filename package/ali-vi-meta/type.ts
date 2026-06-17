@@ -35,3 +35,19 @@ interface I_ali_vi__meta {
 	price: bigint
 	input: I_ali_vi__input
 }
+
+export
+interface I_ali_vi__job_result {
+	id: number
+	order_id: string
+	api: I_ali_vi__key
+
+	input: string
+	output: string
+	raw_request: string
+	raw_response: string
+
+	receive_at: Date
+	send_at: Date
+	finish_at: Date
+}

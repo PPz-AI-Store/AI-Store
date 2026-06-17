@@ -1,5 +1,7 @@
 # 阿里云视觉智能平台 API 封装
 
+!!!!! 单实例部署 !!!!!
+
 + [计费](https://help.aliyun.com/zh/viapi/product-overview/billing-way)
 + [API 文档](https://help.aliyun.com/zh/viapi/developer-reference/api-overview)
 
