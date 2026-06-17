@@ -2,6 +2,13 @@ import type { I_ali_vi__meta } from './type.ts'
 
 const mb = (unit: number) => unit * 1024 * 1024
 
+export
+type I_segment_body_form
+	= 'mask' // 单通道黑白图
+	| 'crop' // 剪裁之后的 png
+	| 'whiteBK' // 白底图
+	| 'abc' // 不填或其他值返回四通道 png
+
 /** 人体分割 */
 export
 const segment_body: I_ali_vi__meta = {
