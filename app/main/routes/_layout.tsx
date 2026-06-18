@@ -3,10 +3,10 @@ import { define } from '#/g/server.ts'
 export default
 define.layout(({ Component, url }) => {
 	return (
-		<div>
-			<nav>
+		<div class=''>
+			<nav class='flex gap-4'>
 				<a href='/'>Home</a>
-				<a href='/pro/segment'>segment</a>
+				<a href='/m/segment'>segment</a>
 			</nav>
 			<main>
 				<Component />

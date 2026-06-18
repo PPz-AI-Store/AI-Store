@@ -8,7 +8,7 @@ export default define.page(function App({ Component }) {
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 				<title>AI 商店</title>
 			</head>
-			<body>
+			<body class='dark:bg-gray-900 dark:text-gray-100'>
 				<Component />
 			</body>
 		</html>
