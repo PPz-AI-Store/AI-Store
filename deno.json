@@ -1,5 +1,7 @@
 {
+  "nodeModulesDir": "manual",
 	"tasks": {
+		"dev:main": "deno task --cwd=app/main dev"
 	},
 	"workspace": [
 		"app/*",
