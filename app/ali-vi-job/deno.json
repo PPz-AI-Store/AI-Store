@@ -1,4 +1,7 @@
 {
+	"imports": {
+		"#queue/": "./main/job-queue/"
+	},
 	"tasks": {
 		"dev": "deno run --allow-net ./main/main.ts"
 	}

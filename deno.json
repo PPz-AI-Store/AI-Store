@@ -4,7 +4,7 @@
 	"workspace": [
 		"app/*",
 		"package/*",
-		"product/*"
+		"product/meta"
 	],
 	"imports": {
 		"@alicloud/imageseg20191230": "npm:@alicloud/imageseg20191230@^4.0.1",
@@ -12,6 +12,7 @@
 		"@db/postgres": "jsr:@db/postgres@^0.19.5",
 		"@std/assert": "jsr:@std/assert@1",
 		"@ppz/ppz": "jsr:@ppz/ppz@^0.0.5",
+		"@zod/zod": "jsr:@zod/zod@^4.4.3",
 		"ali-oss": "npm:ali-oss@^6.23.0"
 	}
 }

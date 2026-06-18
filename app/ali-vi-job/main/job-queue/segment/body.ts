@@ -1,14 +1,14 @@
 import ImageSegClient, { SegmentBodyRequest, type SegmentBodyResponse } from '@alicloud/imageseg20191230'
 // import { RuntimeOptions } from '@alicloud/tea-util'
 import { segment_body, I_segment_body_form } from '@local/ali-vi-meta'
-import { Job_queue, I_rr } from './_base.ts'
-import { get_client_config } from './_aliyun-util.ts'
+import { Job_queue, I_rr } from '../_base.ts'
+import { get_client_config } from '../_aliyun-util.ts'
 
+export
 interface I_segment_body_rr extends I_rr {
 	form: I_segment_body_form
 }
 
-export
 class Segment_body extends Job_queue<I_segment_body_rr, I_raw_response> {
 	private client: ImageSegClient.default
 	constructor() {
@@ -47,3 +47,6 @@ function validate_body(response: SegmentBodyResponse): I_raw_response {
 	}
 	return body as I_raw_response
 }
+
+export
+const segment_body_queue = new Segment_body()

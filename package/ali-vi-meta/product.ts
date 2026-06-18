@@ -7,7 +7,7 @@ type I_segment_body_form
 	= 'mask' // 单通道黑白图
 	| 'crop' // 剪裁之后的 png
 	| 'whiteBK' // 白底图
-	| 'abc' // 不填或其他值返回四通道 png
+	| 'normal' // 不填或其他值返回四通道 png
 
 /** 人体分割 */
 export

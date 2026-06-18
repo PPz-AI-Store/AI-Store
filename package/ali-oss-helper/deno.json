@@ -1,5 +1,5 @@
 {
-	"name": "@local/ali-oss-signer",
+	"name": "@local/ali-oss-helper",
 	"version": "0.0.1",
 	"exports": {
 		".": "./mod.ts"
